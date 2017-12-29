@@ -1,0 +1,12 @@
+# $Id: THANKS,v 1.2 2003/07/12 18:12:31 cinergi Exp $
+
+I'd like to thank:
+
+Len Rose <len@netsys.com>
+	Provided me with a Solaris/sparc testbed
+
+Luke Howard <lukeh@padl.com>
+	For unknowingly providing NSS reference material (nss_ldap)
+
+Clement Laforet <sheepkiller@cultdeadsheep.org>
+    For help on the FreeBSD port

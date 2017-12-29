@@ -1,0 +1,572 @@
+# $Id: ChangeLog,v 1.64 2005/09/04 03:34:00 cinergi Exp $
+
+1.4 - 1.5
+    * BUGFIX: Bug ID 1244484 - Connect timeout broke ability to connect to
+              MySQL server on some platforms.
+
+1.3 - 1.4
+
+    * CHANGE: Read [libnss-mysql] and [client] sections in /etc/my.cnf;
+              Removed these options from libnss-mysql.cfg: timeout, compress,
+              initcmd
+
+1.2 - 1.3
+
+    * NEW:    Configuration file line continuation is now supported.  See
+              samples for examples.
+
+    * NEW:    Static allocation of query line (2048 chars) allows multiple
+              references to the key being looked up - e.g. "SELECT ... FROM
+              ... WHERE foo='%1$s' AND bar='%1$s'"
+
+    * BUGFIX: Removed extraneous UNLOCK that caused thread instability
+              due to changes in version 1.2
+
+    * BUGFIX: Added atexit() handler to close MySQL connection upon process
+              exit.  Should clear up any "Aborted connection [...]
+              Got an error reading communication packets" messages in the
+              MySQL server logs if you have warnings turned on
+
+    * BUGFIX: Added missing Makefile path to <OS>.sym
+
+    * CHANGE: Safely purge MySQL password at program exit
+
+    * CHANGE: Big changes in config parsing; [section]'s are meaningless
+              and safely ignored, but should be removed
+
+    * CHANGE: Static allocation of configuration variables
+
+    * CHANGE: Prefer static MySQL libraries over dynamic; Removed
+              forced-static-link from RPM spec file since this change makes
+              it unnecessary
+
+    * CHANGE: Moved sources to src/ and aux files to aux/
+
+    * CHANGE: Send a syslog if number of columns returned != expected #
+
+    * CHANGE: (Internal) code and support file cleanup; comments
+
+1.1 - 1.2
+
+    * BUGFIX: euid-change detection was broken, causing things like
+              privsep-enabled SSH daemons to be unable to log in a MySQL user.
+              Thanks to Mike Noordermeer for the patch.
+
+    * BUGFIX: Fixed broken 'initcmd' option
+
+    * CHANGE: Minimum supported MySQL version is 3.23.09
+
+    * CHANGE: Removed 'ssl' config option - it's not supposed to be used by
+              client programs
+
+1.0 - 1.1
+
+    * CHANGE: 'configure' now takes just --with-mysql to specify MySQL
+              location instead of two separate (--with-mysql-inc and
+              --with-mysql-lib) options.  The following base locations
+              are automatically searched in this order: /usr, /usr/local,
+              /usr/local/mysql, /opt/local, /opt/local/mysql.
+
+    * BUGFIX: Try query a few more times if it fails; corrects issues with
+              reset idle connections which should result in a valid reconnect
+              and query, but caused 1 'user unknown' error.
+
+    * BUGFIX: Groups without members weren't showing up in getgrent's
+
+    * BUGFIX: Don't leak any symbols except what's necessary - prevents
+              problems with differing MySQL library versions.  Classic
+              example is Apache/PHP using different version than the one
+              statically linked in the libnss-mysql RPM.  On Linux, this
+              requires libtool >= 1.5.2
+
+    * DOCS:   The FreeBSD sample now contains proper shadow implementation.
+              ! PREVIOUS SAMPLES ALLOWED NON-ROOT USERS TO SEE ENCRYPTED
+              ! PASSWORDS
+
+    * DOCS:   Updated README to better suit FreeBSD installations
+
+    * DOCS:   Added Q&A about -R necessity under older Solaris installations.
+
+0.9 - 1.0
+
+    * NEW:    FreeBSD (5.1+) is now supported
+
+    * CHANGE: Solaris makes use of two new columns in the getpw* routines
+              See the file UPGRADING for details
+
+    * CHANGE: Installation of libraries is handled better; as a result, a 
+              'make uninstall' will remove libnss-mysql (except config files)
+
+    * CHANGE: -Bgroup and --allow-shlib-undefined linker options are no longer
+              used.  Hopefully these really aren't necessary anymore
+
+    * CHANGE: Updated RPM SPEC file and removed the linker options above.
+              Minor shortcuts added
+
+0.8 - 0.9
+
+    * NEW:    Several new sample database and configuration files
+
+    * BUGFIX: Don't compile against threaded MySQL libraries.  It was
+              causing deadlocks
+
+    * BUGFIX: Preallocate exactly as much memory as needed to create the
+              MySQL query string; fixes loops/errors with usernames that
+              were extra-long
+
+    * BUGFIX: Fixed cosmetic error reporting queries missing from config
+
+    * CHANGE: Only one server is supported.  The multi-server code was
+              always buggy so I've decided to remove it, at least for 1.0.
+              It was also part of the looping mentioned above
+
+    * CHANGE: Renamed module from libnss_mysql to libnss-mysql for consistency.
+              This includes renaming configuration files.  See UPGRADING for
+              more information
+
+    * CHANGE: Removed all dependencies from RPM spec file
+
+    * CHANGE: Various documentation updates
+
+0.7a - 0.8
+
+    * NEW:    Added RPM SPEC file to distribution
+
+    * NEW:    Lots of additional debugging in the mysql-specific code
+
+    * BUGFIX: Disable MySQL automatic reconnect.  It's not safe in this
+              environment
+
+    * BUGFIX: Try server #0 if all servers are marked down.  Was causing
+              bogus NSS_UNAVAIL returns if connection had been lost
+
+    * BUGFIX: Failover/retry wasn't quit right - could cause infinite
+              loops and other erroneous conditions.
+
+    * BUGFIX: Don't mess up syslog identification names with our own name.
+              As such, there's no more 'configure' option to specify the
+              syslog facility to use
+
+    * BUGFIX: Fixed Solaris coredump when debug was on and a non-local
+              MySQL server was specified
+
+    * CHANGE: Create debug file with a umask of '000' so any process
+              can write to it
+
+    * CHANGE: Removed [libnss_mysql] section for 'my.cnf' - use new options
+              directly in /etc/nss_mysql.cfg: ssl, timeout, compress,
+              initcmd.  These new options are specified within each server
+              section (primary, secondary, etc).  See sample configuration
+              file for details
+
+    * CHANGE: Added default connect timeout (override with 'timeout'
+              option in config - see above) to prevent deadlock
+              situations (could lock yourself out of a server if a
+              server became unreachable).
+
+    * CHANGE: Updated sample database: uid=primary autoincremeting key,
+              gid=primary autoincrementing key, default values for password
+              and shell, and cosmetic changes.  Nothing major
+
+    * CHANGE: port & socket are now optional parameters in the config file
+
+    * CHANGE: Added another directory set to search for MySQL libs/includes
+
+    * CHANGE: Many updates to various documentation
+
+0.7 - 0.7a
+
+    * CHANGE: Don't send syslog messages to *.EMERG (causing console
+              spam) - send them to *.ALERT
+
+    * BUGFIX: Detect various linker options.  Important to get around
+              inability to compile on slightly older Linux systems
+              (IE RedHat 7.1 - 7.2).  Also fixes broken compile on
+              even older systems (RedHat 7.0, Corel 1.2/Debian 2.1)
+
+    * BUGFIX: Fixed compiler warnings when using older versions of MySQL
+
+    * BUGFIX: Properly detect MySQL 4 libraries
+
+0.6 - 0.7
+
+    * NEW:    Re-added debugging.  You can send debug output to syslog,
+              stderr, or a file.  See DEBUGGING for more information.
+
+    * CHANGE: CVS no longer includes files that can be generated using
+              autoconf/automake/libtool/etc ... Install these utilities
+              and use 'setup.sh' if you're building from CVS
+
+    * CHANGE: GNU 'make' is no longer required
+
+    * BUGFIX: Re-implemented uid check to make sure getsp* routines
+              couldn't be called by non-root users (which would create
+              syslog message regarding failed query attempts).
+
+    * BUGFIX: Fix nscd coredump under Solaris.  Any programs that
+              tried to access pw->pw_comment and/or pw->pw_age would have
+              suffered the same fate.
+
+    * BUGFIX: Fixed crash/hang under certain circumstances (usually when
+              forking).
+
+    * BUGFIX: Don't re-create SQL query string every time we iterate
+              through a get*ent routine - will result in speedier lookups
+
+    * BUGFIX: Check for comment lines before checking for bracketed sections -
+              minor speed improvement
+
+    * BUGFIX: Reload config upon euid change - root privs are properly dropped
+
+    * BUGFIX: Don't *close* the sql connection upon fork - just invalidate
+              the child's version so it'll create a new connection.
+
+    * BUGFIX: Fixed deadlock issue for forking, multithreaded apps
+
+0.5 - 0.6
+
+    * NEW:    Support for Sun Workshop compiler
+
+    * NEW:    Additional documentation on producing 64-bit version
+
+    * BUGFIX: Handle program forks properly - used to cause hangs,
+              improper data, crashes, etc ... 
+
+    * BUGFIX: getgrmem() would hang in multi-threaded environment
+
+    * BUGFIX: Abort if Solaris backend couldn't be malloc'ed - was causing
+              inability to log in at single-user root password prompt
+
+    * BUGFIX: Correct handling of insufficient 'buffer' size.
+              Would have caused long hangs (or infinite loops) in Solaris.
+
+    * BUGFIX: Read my.cnf for EVERY server.  Would cause ignored settings
+              like connect-timeout, leading to infinite hangs in outtages.
+
+    * BUGFIX: Don't attempt to run null/empty queries
+
+    * BUGFIX: General compile cleanups, including upgrade to Automake 1.6
+
+0.4 - 0.5
+
+    * NEW:    initgroup/getgrmem support.  Some programs need these
+              routines to find out who's a member of what groups and
+              what groups have what members.  Especially important
+              under Solaris where filesystem group access is done
+              using these methods.
+              THIS REQUIRES A CHANGE TO YOUR DATABASE.  READ THE FILE
+              "UPGRADING" FOR MORE INFORMATION.
+
+    * NEW:    Search for and use thread-safe MySQL library if available.
+
+    * CHANGE: Removed all debug code - for now.  See the file UPGRADING.
+
+    * CHANGE: Syslog configuration done at compile-time.  See the file
+              UPGRADING.
+
+    * CHANGE: Search a few more locations for MySQL library files.
+
+    * CHANGE: Major internal rewrite - to enable me to support other
+              NSS databases.
+
+    * BUGFIX: specify '-L' before '-lmysqlclient' on link line; previously
+              caused 'missing library' errors.
+
+    * BUGFIX: Special linker options properly passed no matter what linker
+              is used.
+
+    * BUGFIX: Prevent any symbols from leaking outside this library.
+              Previously caused unexplained errors or core dumps.
+
+    * BUGFIX: Search for and use static MySQL libraries, too.
+
+    * BUGFIX: Don't disconnect/deallocate upon 'destruct' call (Solaris).
+              The code was not thread-safe, and is no longer necessary.
+              This was preventing persistent connections in some cases, too.
+
+    * BUGFIX: Store different MySQL results in different variables;
+              Enables interleaved 'ent' access of different databases.
+
+    * BUGFIX: Under certain circumstances, euid could be 0 but the
+              process couldn't read a root-owned mode 600 file.  Now we
+              simply always try to open the file - meaning your
+              nss_mysql_root.cfg file better be root-owned, mode 600!
+
+0.3 - 0.4
+
+    * No special configure/make arguments are necessary for Solaris.
+      You may, however, need to manually link the library.  If you
+      encounter an error with an undefined symbol, read the FAQ.
+
+    * Fixed a couple of bus error conditions under Solaris/sparc. 
+
+    * Fixed memory leak under Solaris.
+
+    * Fixed core dump with Solaris csh and ~username expansion.
+      This fix probably fixed other core dumps as well.
+
+    * Fixed compile error under Solaris 2.6 (no socklen_t)
+
+    * Upgraded to autoconf 2.53
+
+    * Rewrote connection handlers.  CONFIG FILE CHANGES ARE REQUIRED. See
+      the file UPGRADING.
+
+    * Read [libnss_mysql] group in my.cnf
+
+    * Do some config validation before doing anything.  Helps prevent
+      mysterious core dumping.
+
+2002-08-28  Ben Goodwin  <cinergi@users.sourceforge.net>
+
+    * *: CVS tag 0.3; Public release
+
+    * nss_main.c, lookup.c, mysql.c, nss_config.c, nss_mysql.h, nss_support.c:
+      turned 'conf' into a global variable instead of passing it around
+      everywhere
+
+    * configure.in: Removed "-z nodelete" hack - didn't work
+
+2002-08-27  Ben Goodwin  <cinergi@users.sourceforge.net>
+
+    * configure.in: Added "-z nodelete" LD_OPTIONS hack to get around
+      strange dlopen-related solaris memory leak bug
+
+    * Automake.am: added -module arg to libtool
+
+2002-08-23  Ben Goodwin  <cinergi@users.sourceforge.net>
+
+    * lookup.c, lookup.h, memory.c, nss_config.c, nss_main.c,
+      nss_mysql.h, nss_support.h: Renamed memory functions to avoid
+      clashes.
+
+    * lookup.c: Fixed memory leak 
+
+    * lookup.h: Added CLOSE_RESULT in GET on the HAVE_NSS_COMMON_H side
+      of the house (to match the HAVE_NSS_H side)
+
+    * nss_main.c: (HAVE_NSS_COMMON_H) default destructor now closes MySQL
+      link - required due to the fact that the module is unloaded and
+      thus static vars are lost
+
+    * nss_config.c: Close config file handle when done with it
+
+2002-08-22  Ben Goodwin  <cinergi@users.sourceforge.net>
+
+    * mysql-grp.c, mysql-pwd.c, mysql-spwd.c: Added euid restrict -
+      don't allow non-root access to certain functions
+
+    * mysql.c: Added CLOSE_NOGRACE for when MySQL socket is stomped on
+      Header cleanup
+
+    * nss_main.c, lookup.c, nss_config.c, nss_support.c: Header cleanup
+
+    * nss_mysql.h: Added CLOSE_NOGRACE flag.  See mysql.h
+      Header cleanup
+
+    * README: Solaris changes.  Info about sample MySQL database.  Prefix
+      changed.
+
+    * Makefile.am, Makefile.in, configure.in, configure: Solaris support.
+      *** NOTICE *** Default prefix has changed to / - configuration files
+      go in /etc by default; Linux libraries go in /lib and the Solaris
+      library goes in /usr/lib.
+
+    * lookup.h: (HAVE_NSS_H) setDBent/endDBent and NOT setDBent_r/endDBent_r
+
+2002-08-21  Ben Goodwin  <cinergi@users.sourceforge.net>
+
+    * nss_mysql.h: Added missing #ifdef HAVE_NSS_COMMON_H around a prototype
+
+2002-08-20  Ben Goodwin  <cinergi@users.sourceforge.net>
+
+    * sample/nss_mysql.cfg: Back to %d (well, %u) for numerical formats.
+
+    * nss_main.c: Removed all NSS API code and spread out to files below.
+
+    * lookup.c, lookup.h, mysql-grp.c, mysql-pwd.c, mysql-spwd.c:
+      NEW FILES.  Moved most of the NSS API code out of nss_main.c to these
+      files.  Also introduced working Solaris pieces.
+
+    * nss_mysql.h: moved pthread stuff here. Added include for nss_dbdefs.h
+      for Solaris (nss_common.h).  Added NSS_ARGS macro (ripped from padl's
+      nss-ldap project).  New source file (lookup.c) -> function proto's.
+
+    * Makefile.am, Makefile.in: Several files added to project
+
+    * mysql.c: _nss_mysql_run_query(): Don't check for valid query anymore
+
+    * nss_mysql.h, nss_main.c: (const char *) for debug routine's FUNCTION arg
+
+2002-08-19  Ben Goodwin  <cinergi@users.sourceforge.net>
+
+    * mysql.c: _nss_mysql_run_query(): Check for valid query ONCE before
+      while loop
+
+2002-08-17  Ben Goodwin  <cinergi@users.sourceforge.net>
+
+    * acconfig.h: Added HAVE_LOG_FTP - configure.in sets this value now
+
+    * nss_config.c: Only use LOG_FTP on systems that have it.
+
+    * nss_mysql.h: HAVE_NSSWITCH_H should have been HAVE_NSS_COMMON_H.
+      Needed to define NSS_STATUS when HAVE_NSS_COMMON_H is defined.
+
+2002-08-16  Ben Goodwin  <cinergi@users.sourceforge.net>
+
+    * mysql.c: Call mysql_escape_string if MYSQL_VERSION_ID < 32300.
+
+    * configure, configure.in: New method for checking MySQL install location.
+
+    * config.h.in, nss_mysql.h: No longer need mysql/mysql.h header check.
+
+    * acinclude.m4: New file.  Added mysql-finder function.
+
+    * aclocal.m4: Re-generated due to new acinclude.m4.
+
+    * TODO: The usual ...
+
+2002-08-15  Ben Goodwin  <cinergi@users.sourceforge.net>
+
+    * nss_mysql.h: Added proto for _nss_mysql_escape_string().
+
+    * nss_support.c: Fixed segfault WRT loading an empty PTCHAR
+      in _nss_mysql_liswb() and _nss_mysql_count_tokens().
+
+    * samples/sample_database.sql: New file
+
+    * nss_main.c: Protect getspent from being used by euid != 0.
+      Split #define's up for readability/flexibility.
+      Run arg passed (username/uid/etc.) through MySQL's string cleanser;
+      AS A RESULT ALL STRING FORMATS IN YOUR CONFIG MUST BE %s !!!
+
+    * mysql.c: Check for euid change.
+      Added _nss_mysql_escape_string().
+
+    * configure, configure.in: Version -> 0.3dev.
+
+    * TODO: Couple new items, prioritization; Got most-needed items done!
+
+    * README: Typo fix (s/DEBUG_NSS/debug_flags/).  Better information
+      RE: ld.so/ldconfig.
+
+2002-08-14  Ben Goodwin  <cinergi@users.sourceforge.net>
+
+    * *: CVS tag 0.2; Public release
+
+2002-05-31  Ben Goodwin  <ben@localhost>
+
+    * sample/nss_mysql.cfg: Added new debug_flags to [global] section
+
+    * nss_support.c: Moved MySQL state information here.  This means that
+      ALL functions share the same state information (unlike before).  So
+      it's possible for poor code to step on it's own *ent routines; I
+      found the glibc library uses the same state information for all
+      functions, so I felt comfortable with this move.  I may be proven
+      wrong though ...
+      Added a few functions so above state information can be accessed/set
+      outside this source file.
+      set ERANGE outside of find_eol
+      Assume that buffer and structure are not NULL (nss_mysql.c now ensures
+      this)
+      CLOSE_ALL -> CLOSE_LINK; CLOSE_LINK now also CLOSE_RESULT's
+      Removed unnecessary \n's on debug lines
+      Check/set return types using enumerated constants instead of 0's and 1's
+      _nss_mysql_log_error changed to _nss_mysql_log with prio arg
+      removed debug - it's now in nss_mysql.c
+
+    * nss_mysql.h: Moved syslog.h here
+      Removed unused FSIZ macro
+      Removed unused D_ERROR; renumbered D_* defines
+      Removed unnecessary CLOSE_ALL.  CLOSE_LINK must CLOSE_RESULT anyway
+      Removed unnecessary \n's on debug lines
+      Added #defines for some configuration defaults
+      Lots of new comments
+      Added boolean and return types so we check/set returns via enumurated
+      constants instead of 0's and 1's ...
+      Added debug_flags to conf.global
+      Rearranged some stuff for better readability
+
+    * nss_mysql.c: The ONLY static variable is conf now.  All MySQL static
+      information moved to nss_support.c
+      Removed unnecessary \n's on debug lines
+      Added _nss_mysql_log (replaces _nss_mysql_log_error)
+      Set config defaults based on #defines in nss_mysql.h
+      Debug logs to syslog instead of a file now
+
+    * nss_config.c: Added "debug_flags" to config
+      Removed unnecessary \n's on debug lines
+      _nss_mysql_log_error changed to _nss_mysql_log with priority argument
+      Use enumerated constants for checking/setting return types
+      Set config defaults based on #defines in nss_mysql.h
+
+    * config.h.in: Added missing HAVE_LOG_AUTHPRIV
+
+    * acconfig.h, configure, configure.in: Debugging goes to syslog now.
+      No need for DEBUG_FILE
+
+    * TODO: I actually did a couple things on my list
+
+    * README: Debugging method changed.  Updated dox to reflect that.
+
+2002-05-30  Ben Goodwin  <ben@localhost>
+
+    * nss_support.c: Syslogging moved to configurable component.  Moved
+      _nss_mysql_log_error to nss_mysql.c
+
+    * nss_mysql.h: Syslogging moved to configurable component
+
+    * nss_mysql.c: Added function enter/exit debugging.  Moved
+      _nss_mysql_log_error from nss_support.c to here
+
+    * nss_config.c: Added support for syslog facility/priority from config file
+
+    * acconfig.h, configure, configure.in: Added HAVE_LOG_AUTHPRIV
+
+2002-05-29  Ben Goodwin  <ben@localhost>
+
+    * sample/nss_mysql.cfg: Added new facility & priority options
+
+    * nss_config.c: Formatting
+
+    * configure, configure.in: Added license and revision info.  Version
+      updated to 0.2d (in-development)
+
+    * config.h.in, acconfig.h: Better name for what is now HAVE___FUNC__
+
+    * Makefile.am, Makefile.in: License and revision info
+
+    * TODO: Let everyone know how I plan to take over the world
+
+    * AUTHORS, ChangeLog, NEWS, README: First-pass
+
+    * sample/nss_mysql_root.cfg: Added missing [server] entry
+
+    * Makefile.am, Makefile.in: Additional file to dist
+
+    * FAQ: New file.
+
+    * sample/nss_mysql_root.cfg: changed default password
+
+2002-05-28  Ben Goodwin  <ben@localhost>
+
+    * *: Tag/Release 0.1
+
+    * Makefile.am, Makefile.in: Specify files in the sample directory to
+      keep 'make dist' from adding CVS files to the distfile
+
+    * configure.in, configure: Added CVS revision tag
+
+    * Makefile.in: This should have been 1.1.1.1; Makefile.am was edited
+      but automake was never run.  Oops ..
+
+    * nss_mysql.h, nss_support.c, nss_structures.c: Added license and rcsid
+      string
+
+    * nss_mysql.c: Added license and rcsid string.  Fixed some formatting
+      issues
+
+    * nss_config.c: Added license and rcsid string
+
+    * *: Initial import of nss-mysql
+
